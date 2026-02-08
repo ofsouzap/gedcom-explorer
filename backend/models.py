@@ -31,4 +31,5 @@ class PersonSummary(BaseModel):
 class PersonSurroundings(BaseModel):
     parents: List[PersonSummary]
     siblings: List[PersonSummary]
+    spouses: List[PersonSummary]
     children: List[PersonSummary]

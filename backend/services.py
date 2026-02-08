@@ -30,6 +30,7 @@ def get_person_surroundings_data(
 
     parents = []
     siblings = []
+    spouses = []
     children = []
 
     # Get parents and siblings from parent families
@@ -67,10 +68,28 @@ def get_person_surroundings_data(
                         )
                     )
 
-    # Get children from spouse families
+    # Get spouses and children from spouse families
     for family_id in person.spouse_families:
         if family_id in families:
             family = families[family_id]
+
+            # Get spouse
+            spouse_id = None
+            if family.husband == person_id and family.wife:
+                spouse_id = family.wife
+            elif family.wife == person_id and family.husband:
+                spouse_id = family.husband
+
+            if spouse_id and spouse_id in individuals:
+                spouse = individuals[spouse_id]
+                spouses.append(
+                    PersonSummary(
+                        id=spouse.id,
+                        name=spouse.name,
+                    )
+                )
+
+            # Get children
             for child_id in family.children:
                 if child_id in individuals:
                     child = individuals[child_id]
@@ -84,5 +103,6 @@ def get_person_surroundings_data(
     return PersonSurroundings(
         parents=parents,
         siblings=siblings,
+        spouses=spouses,
         children=children,
     )

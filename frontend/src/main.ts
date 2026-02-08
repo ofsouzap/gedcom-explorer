@@ -15,10 +15,10 @@ const uploadSection = document.getElementById('upload-section')!;
 const personSelectorSection = document.getElementById('person-selector-section')!;
 const explorerSection = document.getElementById('explorer-section')!;
 const fileInput = document.getElementById('file-input') as HTMLInputElement;
-const uploadButton = document.getElementById('upload-button')!;
+const uploadButton = document.getElementById('upload-button')! as HTMLButtonElement;
 const errorMessage = document.getElementById('error-message')!;
 const personList = document.getElementById('person-list')!;
-const backButton = document.getElementById('back-button')!;
+const backButton = document.getElementById('back-button')! as HTMLButtonElement;
 const familyTreeSvg = document.getElementById('family-tree-svg')!;
 const personDetails = document.getElementById('person-details')!;
 
@@ -128,69 +128,150 @@ function renderFamilyTree(person: GedcomPerson, surroundings: PersonSurroundings
     const centerX = width / 2;
     const centerY = height / 2;
 
-    // Draw connections first (so they appear behind nodes)
-    const connections: Array<{ x1: number; y1: number; x2: number; y2: number }> = [];
+    // Position calculations
+    const nodeRadius = 35;
+    const centerNodeRadius = 40;
+    const levelSpacing = 120;
 
-    // Parents above
-    const parentY = centerY - 150;
-    const parentSpacing = 120;
-    const parentStartX = centerX - ((surroundings.parents.length - 1) * parentSpacing) / 2;
-    surroundings.parents.forEach((parent, i) => {
-        const x = parentStartX + i * parentSpacing;
-        connections.push({ x1: centerX, y1: centerY - 40, x2: x, y2: parentY + 40 });
-    });
+    // Parent level (top)
+    const parentY = centerY - levelSpacing - 30;
+    const parentSpacing = 100;
+    const parentCount = surroundings.parents.length;
+    const parentStartX = centerX - ((parentCount - 1) * parentSpacing) / 2;
 
-    // Children below
-    const childY = centerY + 150;
-    const childSpacing = 100;
-    const childStartX = centerX - ((surroundings.children.length - 1) * childSpacing) / 2;
-    surroundings.children.forEach((child, i) => {
-        const x = childStartX + i * childSpacing;
-        connections.push({ x1: centerX, y1: centerY + 40, x2: x, y2: childY - 40 });
-    });
+    // Selected person level (middle)
+    const personY = centerY;
 
-    // Siblings to the sides
-    const siblingY = centerY;
-    const siblingLeftX = centerX - 200;
-    const siblingRightX = centerX + 200;
-    surroundings.siblings.forEach((sibling, i) => {
-        const x = i % 2 === 0 ? siblingLeftX : siblingRightX;
-        const offsetY = Math.floor(i / 2) * 80 - 40;
-        connections.push({ x1: centerX - 40, y1: centerY, x2: x + 40, y2: siblingY + offsetY });
-    });
+    // Spouse position (next to selected person)
+    const spouseX = centerX + 80;
+    const spouse = surroundings.spouses.length > 0 ? surroundings.spouses[0] : null;
 
-    // Draw all connection lines
-    connections.forEach((conn) => {
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('class', 'connection-line');
-        line.setAttribute('x1', conn.x1.toString());
-        line.setAttribute('y1', conn.y1.toString());
-        line.setAttribute('x2', conn.x2.toString());
-        line.setAttribute('y2', conn.y2.toString());
-        svg.appendChild(line);
-    });
+    // Children level (bottom)
+    const childY = centerY + levelSpacing + 30;
+    const childSpacing = 80;
+    const childCount = surroundings.children.length;
+    const marriageX = spouse ? (centerX + spouseX) / 2 : centerX;
+    const childStartX = marriageX - ((childCount - 1) * childSpacing) / 2;
+
+    // Sibling positions (same level as person, to the left)
+    const siblingSpacing = 80;
+    const siblingStartX = centerX - 150 - (surroundings.siblings.length - 1) * siblingSpacing;
+
+    // Draw connections using paths for better tree structure
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('class', 'connections');
+
+    // Parents to selected person
+    if (parentCount > 0) {
+        // Horizontal line connecting parents
+        if (parentCount === 2) {
+            const parent1X = parentStartX;
+            const parent2X = parentStartX + parentSpacing;
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('class', 'connection-line');
+            path.setAttribute('d', `M ${parent1X} ${parentY} L ${parent2X} ${parentY}`);
+            g.appendChild(path);
+        }
+
+        // Vertical line from parents' midpoint down
+        const parentMidX = parentCount === 2 ?
+            (parentStartX + parentStartX + parentSpacing) / 2 :
+            parentStartX;
+
+        // Line down from parents
+        const path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path1.setAttribute('class', 'connection-line');
+        path1.setAttribute('d', `M ${parentMidX} ${parentY + nodeRadius} L ${parentMidX} ${personY - 50}`);
+        g.appendChild(path1);
+
+        // Horizontal line for siblings and selected person
+        const siblingEndX = surroundings.siblings.length > 0 ?
+            siblingStartX - siblingSpacing / 2 :
+            centerX;
+        const path2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path2.setAttribute('class', 'connection-line');
+        path2.setAttribute('d', `M ${siblingEndX} ${personY - 50} L ${centerX} ${personY - 50}`);
+        g.appendChild(path2);
+
+        // Vertical lines down to each sibling and selected person
+        surroundings.siblings.forEach((sibling, i) => {
+            const x = siblingStartX + i * siblingSpacing;
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('class', 'connection-line');
+            path.setAttribute('d', `M ${x} ${personY - 50} L ${x} ${personY - nodeRadius}`);
+            g.appendChild(path);
+        });
+
+        // Line to selected person
+        const path3 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path3.setAttribute('class', 'connection-line');
+        path3.setAttribute('d', `M ${centerX} ${personY - 50} L ${centerX} ${personY - centerNodeRadius}`);
+        g.appendChild(path3);
+    }
+
+    // Selected person to spouse (horizontal line)
+    if (spouse) {
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('class', 'connection-line');
+        path.setAttribute('d', `M ${centerX + centerNodeRadius} ${personY} L ${spouseX - nodeRadius} ${personY}`);
+        g.appendChild(path);
+    }
+
+    // Marriage point to children
+    if (childCount > 0) {
+        // Vertical line down from marriage point
+        const path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path1.setAttribute('class', 'connection-line');
+        path1.setAttribute('d', `M ${marriageX} ${personY + centerNodeRadius} L ${marriageX} ${childY - 50}`);
+        g.appendChild(path1);
+
+        // Horizontal line connecting all children
+        if (childCount > 1) {
+            const firstChildX = childStartX;
+            const lastChildX = childStartX + (childCount - 1) * childSpacing;
+            const path2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path2.setAttribute('class', 'connection-line');
+            path2.setAttribute('d', `M ${firstChildX} ${childY - 50} L ${lastChildX} ${childY - 50}`);
+            g.appendChild(path2);
+        }
+
+        // Vertical lines down to each child
+        surroundings.children.forEach((child, i) => {
+            const x = childStartX + i * childSpacing;
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('class', 'connection-line');
+            path.setAttribute('d', `M ${x} ${childY - 50} L ${x} ${childY - nodeRadius}`);
+            g.appendChild(path);
+        });
+    }
+
+    svg.appendChild(g);
 
     // Draw nodes
-    // Center person
-    createPersonNode(svg, centerX, centerY, person.name || 'Unknown', person.id, true);
-
     // Parents
     surroundings.parents.forEach((parent, i) => {
         const x = parentStartX + i * parentSpacing;
         createPersonNode(svg, x, parentY, parent.name, parent.id, false);
     });
 
+    // Siblings
+    surroundings.siblings.forEach((sibling, i) => {
+        const x = siblingStartX + i * siblingSpacing;
+        createPersonNode(svg, x, personY, sibling.name, sibling.id, false);
+    });
+
+    // Center person (selected)
+    createPersonNode(svg, centerX, personY, person.name || 'Unknown', person.id, true);
+
+    // Spouse
+    if (spouse) {
+        createPersonNode(svg, spouseX, personY, spouse.name, spouse.id, false);
+    }
+
     // Children
     surroundings.children.forEach((child, i) => {
         const x = childStartX + i * childSpacing;
         createPersonNode(svg, x, childY, child.name, child.id, false);
-    });
-
-    // Siblings
-    surroundings.siblings.forEach((sibling, i) => {
-        const x = i % 2 === 0 ? siblingLeftX : siblingRightX;
-        const offsetY = Math.floor(i / 2) * 80 - 40;
-        createPersonNode(svg, x, siblingY + offsetY, sibling.name, sibling.id, false);
     });
 }
 

@@ -31,6 +31,7 @@ export interface PersonSummary {
 export interface PersonSurroundings {
     parents: PersonSummary[];
     siblings: PersonSummary[];
+    spouses: PersonSummary[];
     children: PersonSummary[];
 }
 
