@@ -3,6 +3,7 @@ import traceback
 
 from gedcom_parser import parse_gedcom_data
 from services import get_person_details, get_person_surroundings_data
+from models import GedcomData
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 
@@ -31,11 +32,12 @@ def get_person(person_id):
     """Get detailed information about a specific person"""
     try:
         data = request.json
-        gedcom_data = data.get("gedcom_data")
+        gedcom_data_dict = data.get("gedcom_data")
 
-        if not gedcom_data:
+        if not gedcom_data_dict:
             return jsonify({"error": "No GEDCOM data provided"}), 400
 
+        gedcom_data = GedcomData(**gedcom_data_dict)
         response = get_person_details(person_id, gedcom_data)
         return jsonify(response.model_dump())
     except ValueError as e:
@@ -50,11 +52,12 @@ def get_person_surroundings(person_id):
     """Get parents, children, and siblings for a person"""
     try:
         data = request.json
-        gedcom_data = data.get("gedcom_data")
+        gedcom_data_dict = data.get("gedcom_data")
 
-        if not gedcom_data:
+        if not gedcom_data_dict:
             return jsonify({"error": "No GEDCOM data provided"}), 400
 
+        gedcom_data = GedcomData(**gedcom_data_dict)
         response = get_person_surroundings_data(person_id, gedcom_data)
         return jsonify(response.model_dump())
     except ValueError as e:

@@ -44,7 +44,7 @@ export async function parseGedcomFile(file: File): Promise<GedcomData> {
         },
     });
 
-    return response.data.data;
+    return response.data;
 }
 
 export async function getPerson(personId: string, gedcomData: GedcomData): Promise<GedcomPerson> {
@@ -52,7 +52,7 @@ export async function getPerson(personId: string, gedcomData: GedcomData): Promi
         gedcom_data: gedcomData,
     });
 
-    return response.data.person;
+    return response.data;
 }
 
 export async function getPersonSurroundings(
@@ -63,5 +63,5 @@ export async function getPersonSurroundings(
         gedcom_data: gedcomData,
     });
 
-    return response.data.surroundings;
+    return response.data;
 }

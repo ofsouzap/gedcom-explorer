@@ -23,16 +23,6 @@ class GedcomData(BaseModel):
     families: Dict[str, GedcomFamily]
 
 
-class ParseResponse(BaseModel):
-    success: bool
-    data: GedcomData
-
-
-class PersonResponse(BaseModel):
-    success: bool
-    person: GedcomPerson
-
-
 class PersonSummary(BaseModel):
     id: str
     name: str
@@ -42,8 +32,3 @@ class PersonSurroundings(BaseModel):
     parents: List[PersonSummary]
     siblings: List[PersonSummary]
     children: List[PersonSummary]
-
-
-class SurroundingsResponse(BaseModel):
-    success: bool
-    surroundings: PersonSurroundings

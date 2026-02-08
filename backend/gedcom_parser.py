@@ -4,10 +4,10 @@ from gedcom.parser import Parser
 import tempfile
 import os
 
-from models import GedcomData, ParseResponse
+from models import GedcomData
 
 
-def parse_gedcom_data(gedcom_data: str) -> ParseResponse:
+def parse_gedcom_data(gedcom_data: str) -> GedcomData:
     """Parse GEDCOM data and return a structured representation"""
     gedcom_parser = Parser()
 
@@ -84,5 +84,4 @@ def parse_gedcom_data(gedcom_data: str) -> ParseResponse:
                 elif tag == "CHIL":
                     families[family_id]["children"].append(child_element.get_value())
 
-    gedcom_data_obj = GedcomData(individuals=individuals, families=families)
-    return ParseResponse(success=True, data=gedcom_data_obj)
+    return GedcomData(individuals=individuals, families=families)
