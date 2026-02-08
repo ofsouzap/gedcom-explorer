@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEDCOM Explorer</title>
+    <link rel="stylesheet" href="/src/styles.css">
+</head>
+
+<body>
+    <div id="app">
+        <div id="upload-section">
+            <h1>GEDCOM Explorer</h1>
+            <div class="upload-container">
+                <input type="file" id="file-input" accept=".ged,.gedcom" />
+                <button id="upload-button">Upload GEDCOM File</button>
+            </div>
+            <div id="error-message" class="error"></div>
+        </div>
+
+        <div id="person-selector-section" style="display: none;">
+            <h2>Select a Person to Explore</h2>
+            <div id="person-list"></div>
+        </div>
+
+        <div id="explorer-section" style="display: none;">
+            <button id="back-button">← Back to Person List</button>
+            <div id="family-tree-container">
+                <svg id="family-tree-svg"></svg>
+            </div>
+            <div id="person-details"></div>
+        </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+</body>
+
+</html>
